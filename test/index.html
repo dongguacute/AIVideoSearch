@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Video Search Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 520px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 36px 28px 36px;
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 28px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        label {
+            color: #444;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #f8fafc;
+            resize: vertical;
+        }
+        .dropzone {
+            border: 2px dashed #6c63ff;
+            border-radius: 8px;
+            background: #f4f4ff;
+            padding: 28px 0;
+            text-align: center;
+            color: #6c63ff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .dropzone.dragover {
+            background: #e0e7ff;
+            border-color: #4f46e5;
+        }
+        button {
+            background: linear-gradient(90deg,#6c63ff 0%,#5f9cff 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg,#5f9cff 0%,#6c63ff 100%);
+        }
+        .result-list {
+            margin-top: 24px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .result-item {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-title {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        .result-path {
+            color: #555;
+            font-size: 14px;
+        }
+        .search-autocomplete {
+            position: relative;
+        }
+        .autocomplete-list {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            z-index: 10;
+            max-height: 260px;
+            overflow-y: auto;
+            margin-top: 2px;
+            padding: 0;
+            list-style: none;
+        }
+        .autocomplete-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+        .autocomplete-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .autocomplete-path {
+            font-size: 13px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h2>Upload Video Metadata</h2>
+        <form id="uploadForm">
+            <label>Video Title
+                <input type="text" id="video_title" required>
+            </label>
+            <label>Video Description
+                <textarea id="video_description" rows="3" required></textarea>
+            </label>
+            <label>CC (Subtitle File)</label>
+            <div id="dropzone" class="dropzone">Drag and drop subtitle file here, or click to select</div>
+            <input type="file" id="video_cc_file" accept=".txt,.srt,.vtt" style="display:none;">
+            <label>Video Storage Path
+                <input type="text" id="video_path" required>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+        <h2 style="margin-top:40px;">Video Summary Search</h2>
+        <form id="searchForm">
+            <div class="search-autocomplete">
+                <label>Keyword
+                    <input type="text" id="search_keyword" autocomplete="off" required>
+                </label>
+                <ul id="autocompleteList" class="autocomplete-list" style="display:none;"></ul>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+        <div id="searchResults" class="result-list" style="display:none;"></div>
+        <div id="uploadStatus" style="display:none;margin-top:10px;color:#22c55e;font-weight:600;text-align:center;font-size:16px;">Upload completed!</div>
+    </div>
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const ccFileInput = document.getElementById('video_cc_file');
+        let ccText = '';
+        let ccFileName = '';
+        dropzone.addEventListener('click', () => ccFileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                ccFileInput.files = e.dataTransfer.files;
+                handleCCFile();
+            }
+        });
+        ccFileInput.addEventListener('change', handleCCFile);
+        function handleCCFile() {
+            if (ccFileInput.files.length > 0) {
+                const file = ccFileInput.files[0];
+                ccFileName = file.name;
+                dropzone.textContent = 'Selected: ' + ccFileName;
+                file.text().then(text => {
+                    ccText = text;
+                });
+            } else {
+                dropzone.textContent = 'Drag and drop subtitle file here, or click to select';
+                ccText = '';
+                ccFileName = '';
+            }
+        }
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('video_title').value.trim();
+            const desc = document.getElementById('video_description').value.trim();
+            const path = document.getElementById('video_path').value.trim();
+            const uploadStatus = document.getElementById('uploadStatus');
+            if (!ccText) {
+                alert('Please upload a subtitle file');
+                return;
+            }
+            uploadStatus.style.display = 'none';
+            const res = await fetch('http://127.0.0.1:8080/post_video', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    video_title: title,
+                    video_description: desc,
+                    video_cc: ccText,
+                    video_path: path
+                }),
+                credentials: 'omit',
+                mode: 'cors'
+            });
+            if (res.ok) {
+                this.reset();
+                dropzone.textContent = 'Drag and drop subtitle file here, or click to select';
+                ccText = '';
+                ccFileName = '';
+                uploadStatus.style.display = 'block';
+                setTimeout(()=>{uploadStatus.style.display='none';}, 2000);
+            } else {
+                alert('Upload failed');
+            }
+        });
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const keyword = document.getElementById('search_keyword').value.trim();
+            const res = await fetch('http://127.0.0.1:8080/search?keyword=' + encodeURIComponent(keyword));
+            const resultsDiv = document.getElementById('searchResults');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div>No related videos found.</div>';
+                } else {
+                    resultsDiv.innerHTML = data.map(item =>
+                        `<div class='result-item'><div class='result-title'>${item.summary}</div><div class='result-path'>${item.video_path}</div></div>`
+                    ).join('');
+                }
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.innerHTML = '<div>Search failed.</div>';
+                resultsDiv.style.display = 'block';
+            }
+        });
+        const searchInput = document.getElementById('search_keyword');
+        const autocompleteList = document.getElementById('autocompleteList');
+        let autocompleteResults = [];
+        let activeIndex = -1;
+        searchInput.addEventListener('input', async function() {
+            const keyword = this.value.trim();
+            if (!keyword) {
+                autocompleteList.style.display = 'none';
+                return;
+            }
+            const res = await fetch('http://127.0.0.1:8080/search?keyword=' + encodeURIComponent(keyword));
+            if (res.ok) {
+                const data = await res.json();
+                autocompleteResults = data;
+                if (data.length === 0) {
+                    autocompleteList.style.display = 'none';
+                } else {
+                    autocompleteList.innerHTML = data.map((item, idx) =>
+                        `<li class='autocomplete-item${idx===activeIndex?' active':''}' data-idx='${idx}'>
+                            <div class='autocomplete-title'>${item.summary}</div>
+                            <div class='autocomplete-path'>${item.video_path}</div>
+                        </li>`
+                    ).join('');
+                    autocompleteList.style.display = 'block';
+                }
+            } else {
+                autocompleteList.style.display = 'none';
+            }
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (autocompleteList.style.display === 'block') {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = Math.min(activeIndex + 1, autocompleteResults.length - 1);
+                    updateActiveItem();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = Math.max(activeIndex - 1, 0);
+                    updateActiveItem();
+                } else if (e.key === 'Enter') {
+                    if (activeIndex >= 0 && autocompleteResults[activeIndex]) {
+                        e.preventDefault();
+                        selectAutocompleteItem(activeIndex);
+                    }
+                }
+            }
+        });
+        autocompleteList.addEventListener('mousedown', function(e) {
+            const li = e.target.closest('.autocomplete-item');
+            if (li) {
+                const idx = parseInt(li.getAttribute('data-idx'));
+                selectAutocompleteItem(idx);
+            }
+        });
+        document.addEventListener('click', function(e) {
+            if (!autocompleteList.contains(e.target) && e.target !== searchInput) {
+                autocompleteList.style.display = 'none';
+                activeIndex = -1;
+            }
+        });
+        function updateActiveItem() {
+            const items = autocompleteList.querySelectorAll('.autocomplete-item');
+            items.forEach((item, idx) => {
+                item.classList.toggle('active', idx === activeIndex);
+            });
+        }
+        function selectAutocompleteItem(idx) {
+            if (autocompleteResults[idx]) {
+                searchInput.value = autocompleteResults[idx].summary;
+                autocompleteList.style.display = 'none';
+                activeIndex = -1;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+[project]
+name = "AIVideoSearch"
+version = "1.0.0"
+description = "An example of an AI-powered descriptive search feature designed for a modern video platform"
+authors = [
+    {name = "dongguacute",email = "me@dongguact.top"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "aiofiles",
+    "httpx",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = ["src"]

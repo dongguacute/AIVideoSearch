@@ -1,32 +1,32 @@
-# AI Video Search
+# AI 视频搜索
 
 [English](README.md) | [简体中文](README_zh-CN.md) | [繁體中文](README_zh-TW.md) | [日本語](README_ja.md) | [Français](README_fr.md) | [Español](README_es.md)
 
 ---
 
-Use AI API to describe and search videos. Simply upload a video and search by description.
+使用AI API描述并搜索视频。只需上传视频，即可通过描述进行搜索。
 
-## Installation
-1. Clone the project:
+## 安装
+1. 克隆项目：
    ```bash
    git clone https://github.com/yourname/AIVideoSearch.git
    cd AIVideoSearch
    ```
-2. Install dependencies via pyproject.toml with uv:
+2. 通过pyproject.toml使用uv安装依赖：
    ```bash
    uv pip install -r pyproject.toml
    ```
-3. Set your API key in `src/setting.env` (please fill in your actual AI API key):
+3. 在 `src/setting.env` 设置你的API密钥（请填写实际AI API密钥）：
    ```env
    API_KEY=your-api-key
    ```
 
-## Start
-Run backend:
+## 启动
+运行后端：
 ```bash
 python3 -m src.main
 ```
-Open `test/index.html` in your browser for the frontend.
+前端请在浏览器打开 `test/index.html`。
 
-## License
+## 协议
 MIT
