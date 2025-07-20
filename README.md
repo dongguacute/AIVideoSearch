@@ -9,7 +9,7 @@ Use AI API to describe and search videos. Simply upload a video and search by de
 ## Installation
 1. Clone the project:
    ```bash
-   git clone https://github.com/yourname/AIVideoSearch.git
+   git clone https://github.com/dongguacute/AIVideoSearch.git
    cd AIVideoSearch
    ```
 2. Install dependencies via pyproject.toml with uv:
