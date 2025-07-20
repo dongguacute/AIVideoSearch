@@ -9,7 +9,7 @@ Utiliza la API de IA para describir y buscar videos. Simplemente sube un video y
 ## Instalación
 1. Clona el proyecto:
    ```bash
-   git clone https://github.com/yourname/AIVideoSearch.git
+   git clone https://github.com/dongguacute/AIVideoSearch.git
    cd AIVideoSearch
    ```
 2. Instala las dependencias usando pyproject.toml con uv:

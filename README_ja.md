@@ -9,7 +9,7 @@ AI APIを使って動画を記述・検索できます。動画をアップロ�
 ## インストール
 1. プロジェクトをクローン：
    ```bash
-   git clone https://github.com/yourname/AIVideoSearch.git
+   git clone https://github.com/dongguacute/AIVideoSearch.git
    cd AIVideoSearch
    ```
 2. pyproject.tomlを使ってuvで依存関係をインストール：

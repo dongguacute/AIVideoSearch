@@ -9,7 +9,7 @@
 ## 安装
 1. 克隆项目：
    ```bash
-   git clone https://github.com/yourname/AIVideoSearch.git
+   git clone https://github.com/dongguacute/AIVideoSearch.git
    cd AIVideoSearch
    ```
 2. 通过pyproject.toml使用uv安装依赖：

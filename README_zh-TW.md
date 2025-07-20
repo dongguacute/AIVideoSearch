@@ -9,7 +9,7 @@
 ## 安裝
 1. 複製專案：
    ```bash
-   git clone https://github.com/yourname/AIVideoSearch.git
+   git clone https://github.com/dongguacute/AIVideoSearch.git
    cd AIVideoSearch
    ```
 2. 透過pyproject.toml使用uv安裝依賴：
